@@ -109,6 +109,7 @@ endif()
 # 3rd Party Dependency Stuff
 find_package(Qt5 COMPONENTS Core Network Widgets Svg REQUIRED)
 find_package(Gnuradio-osmosdr REQUIRED)
+find_package(Gnuradio-radioteletype REQUIRED)
 
 set(GR_REQUIRED_COMPONENTS RUNTIME ANALOG AUDIO BLOCKS DIGITAL FILTER FFT PMT)
 find_package(Gnuradio REQUIRED COMPONENTS analog audio blocks digital filter fft)
@@ -220,11 +221,13 @@ include_directories(
     ${Boost_INCLUDE_DIRS}
     ${GNURADIO_RUNTIME_INCLUDE_DIRS}
     ${GNURADIO_OSMOSDR_INCLUDE_DIRS}
+    ${GNURADIO_RADIOTELETYPE_INCLUDE_DIRS}
 )
 
 link_directories(
     ${Boost_LIBRARY_DIRS}
     ${GNURADIO_RUNTIME_LIBRARY_DIRS}
+    ${GNURADIO_RADIOTELETYPE_LIBRARY_DIRS}
 )
 
 

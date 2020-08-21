@@ -71,6 +71,7 @@ target_link_libraries(${PROJECT_NAME}
     ${PULSEAUDIO_LIBRARY}
     ${PULSE-SIMPLE}
     ${PORTAUDIO_LIBRARIES}
+    ${GNURADIO_RADIOTELETYPE_LIBRARIES}
     volk
 )
 
