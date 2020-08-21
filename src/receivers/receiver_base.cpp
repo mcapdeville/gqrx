@@ -134,25 +134,29 @@ void receiver_base_cf::set_am_dcr(bool enabled)
     (void) enabled;
 }
 
-void receiver_base_cf::get_rds_data(std::string &outbuff, int &num)
+void receiver_base_cf::get_decoder_data(int decoder_type, std::string &outbuff, int &num)
 {
+	(void) decoder_type;
         (void) outbuff;
-        (void) num;
+        num = -1;
 }
 
-void receiver_base_cf::start_rds_decoder()
+void receiver_base_cf::start_decoder(int decoder_type)
 {
+	(void) decoder_type;
 }
 
-void receiver_base_cf::stop_rds_decoder()
+void receiver_base_cf::stop_decoder(int decoder_type)
 {
+	(void) decoder_type;
 }
 
-void receiver_base_cf::reset_rds_parser()
+void receiver_base_cf::reset_decoder(int decoder_type)
 {
+	(void) decoder_type;
 }
 
-bool receiver_base_cf::is_rds_decoder_active()
+bool receiver_base_cf::is_decoder_active(int decoder_type)
 {
     return false;
 }

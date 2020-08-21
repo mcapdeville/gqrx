@@ -878,8 +878,8 @@ void MainWindow::setFilterOffset(qint64 freq_hz)
     qint64 rx_freq = d_hw_freq + d_lnb_lo + freq_hz;
     ui->freqCtrl->setFrequency(rx_freq);
 
-    if (rx->is_rds_decoder_active()) {
-        rx->reset_rds_parser();
+    if (rx->is_decoder_active(receiver::RX_DECODER_ANY)) {
+        rx->reset_decoder(receiver::RX_DECODER_ALL);
     }
 }
 
@@ -1010,7 +1010,7 @@ void MainWindow::selectDemod(int mode_idx)
     double  cwofs = 0.0;
     int     filter_preset = uiDockRxOpt->currentFilter();
     int     flo=0, fhi=0, click_res=100;
-    bool    rds_enabled;
+    bool    rds_decoder_enabled;
 
     // validate mode_idx
     if (mode_idx < DockRxOpt::MODE_OFF || mode_idx >= DockRxOpt::MODE_LAST)
@@ -1023,8 +1023,8 @@ void MainWindow::selectDemod(int mode_idx)
     uiDockRxOpt->getFilterPreset(mode_idx, filter_preset, &flo, &fhi);
     d_filter_shape = (receiver::filter_shape)uiDockRxOpt->currentFilterShape();
 
-    rds_enabled = rx->is_rds_decoder_active();
-    if (rds_enabled)
+    rds_decoder_enabled = rx->is_decoder_active(receiver::RX_DECODER_RDS);
+    if (rds_decoder_enabled)
         setRdsDecoder(false);
     uiDockRDS->setDisabled();
 
@@ -1080,7 +1080,7 @@ void MainWindow::selectDemod(int mode_idx)
             rx->set_demod(receiver::RX_DEMOD_WFM_S);
 
         uiDockRDS->setEnabled();
-        if (rds_enabled)
+        if (rds_decoder_enabled)
             setRdsDecoder(true);
         break;
 
@@ -1367,10 +1367,10 @@ void MainWindow::rdsTimeout()
     std::string buffer;
     int num;
 
-    rx->get_rds_data(buffer, num);
+    rx->get_decoder_data(receiver::RX_DECODER_RDS,buffer, num);
     while(num!=-1) {
-        rx->get_rds_data(buffer, num);
         uiDockRDS->updateRDS(QString::fromStdString(buffer), num);
+        rx->get_decoder_data(receiver::RX_DECODER_RDS,buffer, num);
     }
 }
 
@@ -1931,8 +1931,8 @@ void MainWindow::on_plotter_newDemodFreq(qint64 freq, qint64 delta)
     uiDockRxOpt->setFilterOffset(delta);
     ui->freqCtrl->setFrequency(freq);
 
-    if (rx->is_rds_decoder_active())
-        rx->reset_rds_parser();
+    if (rx->is_decoder_active(receiver::RX_DECODER_ANY))
+        rx->reset_decoder(receiver::RX_DECODER_ALL);
 }
 
 /* CPlotter::NewfilterFreq() is emitted or bookmark activated */
@@ -2077,15 +2077,15 @@ void MainWindow::setRdsDecoder(bool checked)
     {
         qDebug() << "Starting RDS decoder.";
         uiDockRDS->showEnabled();
-        rx->start_rds_decoder();
-        rx->reset_rds_parser();
+        rx->start_decoder(receiver::RX_DECODER_RDS);
+        rx->reset_decoder(receiver::RX_DECODER_RDS);
         rds_timer->start(250);
     }
     else
     {
         qDebug() << "Stopping RDS decoder.";
         uiDockRDS->showDisabled();
-        rx->stop_rds_decoder();
+        rx->stop_decoder(receiver::RX_DECODER_RDS);
         rds_timer->stop();
     }
 }

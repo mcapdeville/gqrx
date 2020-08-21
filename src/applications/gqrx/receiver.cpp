@@ -74,6 +74,7 @@ receiver::receiver(const std::string input_device,
       d_iq_rev(false),
       d_dc_cancel(false),
       d_iq_balance(false),
+      d_rx_chain(RX_CHAIN_NONE),
       d_demod(RX_DEMOD_OFF)
 {
 
@@ -1333,6 +1334,8 @@ void receiver::connect_all(rx_chain type)
         break;
     }
 
+    d_rx_chain = type;
+
     // Audio path (if there is a receiver)
     if (type != RX_CHAIN_NONE)
     {
@@ -1361,31 +1364,141 @@ void receiver::connect_all(rx_chain type)
     }
 }
 
-void receiver::get_rds_data(std::string &outbuff, int &num)
+void receiver::get_decoder_data(enum rx_decoder decoder_type,std::string &outbuff, int &num)
 {
-    rx->get_rds_data(outbuff, num);
+	switch (d_rx_chain) {
+		case RX_CHAIN_NBRX:
+			switch (decoder_type) {
+				default:
+					num = -1;
+					break;
+			}
+			break;
+		case RX_CHAIN_WFMRX:
+			switch (decoder_type) {
+				case RX_DECODER_RDS:
+					rx->get_decoder_data(wfmrx::WFMRX_DECODER_RDS,outbuff,num);
+					break;
+				default:
+					num = -1;
+					break;
+			}
+			break;
+		default:
+			num = -1;
+			break;
+	}		
 }
 
-void receiver::start_rds_decoder(void)
+void receiver::start_decoder(enum rx_decoder decoder_type)
 {
     stop();
-    rx->start_rds_decoder();
+
+	switch (d_rx_chain) {
+		case RX_CHAIN_NBRX:
+			switch (decoder_type) {
+				default:
+					break;
+			}
+			break;
+		case RX_CHAIN_WFMRX:
+			switch (decoder_type) {
+				case RX_DECODER_RDS:
+					rx->start_decoder(wfmrx::WFMRX_DECODER_RDS);
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}	
+
     start();
 }
 
-void receiver::stop_rds_decoder(void)
+void receiver::stop_decoder(enum rx_decoder decoder_type)
 {
     stop();
-    rx->stop_rds_decoder();
+
+	switch (d_rx_chain) {
+		case RX_CHAIN_NBRX:
+			switch (decoder_type) {
+				default:
+					break;
+			}
+			break;
+		case RX_CHAIN_WFMRX:
+			switch (decoder_type) {
+				case RX_DECODER_RDS:
+					rx->stop_decoder(wfmrx::WFMRX_DECODER_RDS);
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}	
+
     start();
 }
 
-bool receiver::is_rds_decoder_active(void) const
+bool receiver::is_decoder_active(enum rx_decoder decoder_type) const
 {
-    return rx->is_rds_decoder_active();
+	bool active = false;
+
+	switch (d_rx_chain) {
+		case RX_CHAIN_NBRX:
+			switch (decoder_type) {
+				case RX_DECODER_ANY:
+					return active;
+				default:
+					break;
+			}
+			break;
+		case RX_CHAIN_WFMRX:
+			switch (decoder_type) {
+				case RX_DECODER_ANY:
+					active |= rx->is_decoder_active(wfmrx::WFMRX_DECODER_RDS);
+					return active;
+				case RX_DECODER_RDS:
+					return rx->is_decoder_active(wfmrx::WFMRX_DECODER_RDS);
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}	
+
+    return false;
 }
 
-void receiver::reset_rds_parser(void)
+void receiver::reset_decoder(enum rx_decoder decoder_type)
 {
-    rx->reset_rds_parser();
+	switch (d_rx_chain) {
+		case RX_CHAIN_NBRX:
+			switch (decoder_type) {
+				case RX_DECODER_ALL:
+					break;
+				default:
+					break;
+			}
+			break;
+		case RX_CHAIN_WFMRX:
+			switch (decoder_type) {
+				case RX_DECODER_ALL:
+					rx->reset_decoder(wfmrx::WFMRX_DECODER_RDS);
+					break;
+				case RX_DECODER_RDS:
+					rx->reset_decoder(wfmrx::WFMRX_DECODER_RDS);
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}	
 }

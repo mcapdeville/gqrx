@@ -255,37 +255,72 @@ void wfmrx::set_fm_deemph(double tau)
     demod_fm->set_tau(tau);
 }
 
-void wfmrx::get_rds_data(std::string &outbuff, int &num)
+void wfmrx::get_decoder_data(enum wfmrx_decoder decoder_type, std::string &outbuff, int &num)
 {
-    rds_store->get_message(outbuff, num);
+	if (!is_decoder_active(decoder_type))
+		num = -1;
+	else switch (decoder_type) {
+		case WFMRX_DECODER_RDS:
+			rds_store->get_message(outbuff, num);
+			break;
+		default:
+			num = -1;
+			break;
+	}
 }
 
-void wfmrx::start_rds_decoder()
+void wfmrx::start_decoder(enum wfmrx_decoder decoder_type)
 {
-    connect(demod_fm, 0, rds, 0);
-    connect(rds, 0, rds_decoder, 0);
-    msg_connect(rds_decoder, "out", rds_parser, "in");
-    msg_connect(rds_parser, "out", rds_store, "store");
-    rds_enabled=true;
+	if (!is_decoder_active(decoder_type))
+		switch (decoder_type) {
+			case WFMRX_DECODER_RDS:
+				connect(demod_fm, 0, rds, 0);
+				connect(rds, 0, rds_decoder, 0);
+				msg_connect(rds_decoder, "out", rds_parser, "in");
+				msg_connect(rds_parser, "out", rds_store, "store");
+				rds_enabled=true;
+				break;
+			default:
+				break;
+		}
 }
 
-void wfmrx::stop_rds_decoder()
+void wfmrx::stop_decoder(enum wfmrx_decoder decoder_type)
 {
-    lock();
-    disconnect(demod_fm, 0, rds, 0);
-    disconnect(rds, 0, rds_decoder, 0);
-    msg_disconnect(rds_decoder, "out", rds_parser, "in");
-    msg_disconnect(rds_parser, "out", rds_store, "store");
-    unlock();
-    rds_enabled=false;
+	if (is_decoder_active(decoder_type))
+		switch (decoder_type) {
+			case WFMRX_DECODER_RDS:
+				lock();
+				disconnect(demod_fm, 0, rds, 0);
+				disconnect(rds, 0, rds_decoder, 0);
+				msg_disconnect(rds_decoder, "out", rds_parser, "in");
+				msg_disconnect(rds_parser, "out", rds_store, "store");
+				unlock();
+				rds_enabled=false;
+				break;
+			default:
+				break;
+		}
 }
 
-void wfmrx::reset_rds_parser()
+void wfmrx::reset_decoder(enum wfmrx_decoder decoder_type)
 {
-    rds_parser->reset();
+	if (is_decoder_active(decoder_type))
+		switch (decoder_type) {
+			case WFMRX_DECODER_RDS:
+				rds_parser->reset();
+				break;
+			default:
+				break;
+		}
 }
 
-bool wfmrx::is_rds_decoder_active()
+bool wfmrx::is_decoder_active(enum wfmrx_decoder decoder_type)
 {
-    return rds_enabled;
+	switch (decoder_type) {
+		case WFMRX_DECODER_RDS:
+			return rds_enabled;
+		default:
+			return false;
+	}
 }

@@ -59,6 +59,13 @@ public:
         WFMRX_DEMOD_STEREO_UKW = 2,  /*!< UKW stereo. */
         WFMRX_DEMOD_NUM        = 3   /*!< Included for convenience. */
     };
+
+    /** \brief Available Digital decoder */
+    enum wfmrx_decoder {
+	WFMRX_DECODER_NONE = 0,	/*!< NO decoder. */
+	WFMRX_DECODER_RDS = 1,	/*!< RDS decoder. */
+    };
+
     wfmrx(float quad_rate, float audio_rate);
     ~wfmrx();
 
@@ -99,11 +106,12 @@ public:
     void set_fm_maxdev(float maxdev_hz);
     void set_fm_deemph(double tau);
 
-    void get_rds_data(std::string &outbuff, int &num);
-    void start_rds_decoder();
-    void stop_rds_decoder();
-    void reset_rds_parser();
-    bool is_rds_decoder_active();
+    /* Digital decoder methode */
+    void get_decoder_data(enum wfmrx_decoder decoder_type,std::string &outbuff, int &num);
+    void start_decoder(enum wfmrx_decoder decoder_type);
+    void stop_decoder(enum wfmrx_decoder decoder_type);
+    void reset_decoder(enum wfmrx_decoder decoder_type);
+    bool is_decoder_active(enum wfmrx_decoder decoder_type);
 
 private:
     bool   d_running;          /*!< Whether receiver is running or not. */
@@ -123,6 +131,7 @@ private:
     stereo_demod_sptr         stereo_oirt;    /*!< FM stereo oirt demodulator. */
     stereo_demod_sptr         mono;      /*!< FM stereo demodulator OFF. */
 
+    /* RDS decoder */
     rx_rds_sptr               rds;       /*!< RDS decoder */
     rx_rds_store_sptr         rds_store; /*!< RDS decoded messages */
     gr::rds::decoder::sptr    rds_decoder;

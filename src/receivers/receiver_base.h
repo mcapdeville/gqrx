@@ -91,11 +91,11 @@ public:
     virtual bool has_am();
     virtual void set_am_dcr(bool enabled);
 
-    virtual void get_rds_data(std::string &outbuff, int &num);
-    virtual void start_rds_decoder();
-    virtual void stop_rds_decoder();
-    virtual void reset_rds_parser();
-    virtual bool is_rds_decoder_active();
+    virtual void get_decoder_data(int decoder_type, std::string &outbuff, int &num);
+    virtual void start_decoder(int decoder_type);
+    virtual void stop_decoder(int decoder_type);
+    virtual void reset_decoder(int decoder_type);
+    virtual bool is_decoder_active(int decoder_type);
 
 };
 

@@ -109,6 +109,14 @@ public:
         FILTER_SHAPE_SHARP = 2   /*!< Sharp: Transition band is TBD of width. */
     };
 
+    /** Ditial decoder type */
+    enum rx_decoder {
+	    RX_DECODER_ALL = -1,
+	    RX_DECODER_NONE = 0,
+	    RX_DECODER_ANY = 0,
+	    RX_DECODER_RDS = 1,
+    };
+
     receiver(const std::string input_device="",
              const std::string audio_device="",
              unsigned int decimation=1);
@@ -217,12 +225,12 @@ public:
     bool        is_recording_audio(void) const { return d_recording_wav; }
     bool        is_snifffer_active(void) const { return d_sniffer_active; }
 
-    /* rds functions */
-    void        get_rds_data(std::string &outbuff, int &num);
-    void        start_rds_decoder(void);
-    void        stop_rds_decoder();
-    bool        is_rds_decoder_active(void) const;
-    void        reset_rds_parser(void);
+    /* decoder functions */
+    void        get_decoder_data(enum rx_decoder decoder_type, std::string &outbuff, int &num);
+    void        start_decoder(enum rx_decoder decoder_type);
+    void        stop_decoder(enum rx_decoder decoder_type);
+    bool        is_decoder_active(enum rx_decoder decoder_type) const;
+    void        reset_decoder(enum rx_decoder decoder_type);
 
 private:
     void        connect_all(rx_chain type);
@@ -248,6 +256,7 @@ private:
     std::string input_devstr;  /*!< Current input device string. */
     std::string output_devstr; /*!< Current output device string. */
 
+    rx_chain	d_rx_chain;	/*! Current Rx chain */
     rx_demod    d_demod;       /*!< Current demodulator. */
 
     gr::top_block_sptr         tb;        /*!< The GNU Radio top block. */

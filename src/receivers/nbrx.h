@@ -61,6 +61,12 @@ public:
         NBRX_DEMOD_NUM  = 4   /*!< Included for convenience. */
     };
 
+    /** \brief Available Digital decoder */
+    enum nbrx_decoder {
+	NBRX_DECODER_NONE = 0,	/*!< NO decoder. */
+	NBRX_DECODER_RTTY = 1,	/*!< RDS decoder. */
+    };
+
 public:
     nbrx(float quad_rate, float audio_rate);
     virtual ~nbrx() { };
@@ -105,6 +111,13 @@ public:
     /* AM parameters */
     bool has_am() { return true; }
     void set_am_dcr(bool enabled);
+
+    /* Digital decoder methode */
+    void get_decoder_data(enum nbrx_decoder decoder_type,std::string &outbuff, int &num);
+    void start_decoder(enum nbrx_decoder decoder_type);
+    void stop_decoder(enum nbrx_decoder decoder_type);
+    void reset_decoder(enum nbrx_decoder decoder_type);
+    bool is_decoder_active(enum nbrx_decoder decoder_type);
 
 private:
     bool   d_running;          /*!< Whether receiver is running or not. */
