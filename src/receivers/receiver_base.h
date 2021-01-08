@@ -96,6 +96,8 @@ public:
     virtual void stop_decoder(int decoder_type);
     virtual void reset_decoder(int decoder_type);
     virtual bool is_decoder_active(int decoder_type);
+    virtual void set_decoder_param(int decoder_type, std::string param, std::string val);
+    virtual void get_decoder_param(int decoder_type, std::string param, std::string &val);
 
 };
 

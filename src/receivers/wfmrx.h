@@ -107,11 +107,11 @@ public:
     void set_fm_deemph(double tau);
 
     /* Digital decoder methode */
-    void get_decoder_data(enum wfmrx_decoder decoder_type,std::string &outbuff, int &num);
-    void start_decoder(enum wfmrx_decoder decoder_type);
-    void stop_decoder(enum wfmrx_decoder decoder_type);
-    void reset_decoder(enum wfmrx_decoder decoder_type);
-    bool is_decoder_active(enum wfmrx_decoder decoder_type);
+    void get_decoder_data(int decoder_type,std::string &outbuff, int &num);
+    void start_decoder(int decoder_type);
+    void stop_decoder(int decoder_type);
+    void reset_decoder(int decoder_type);
+    bool is_decoder_active(int decoder_type);
 
 private:
     bool   d_running;          /*!< Whether receiver is running or not. */

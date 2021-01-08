@@ -160,3 +160,13 @@ bool receiver_base_cf::is_decoder_active(int decoder_type)
 {
     return false;
 }
+
+void receiver_base_cf::set_decoder_param(int decoder_type, std::string param, std::string val) {
+	(void) param;
+	(void) val;
+}
+
+void receiver_base_cf::get_decoder_param(int decoder_type, std::string param, std::string &val) {
+	(void) param;
+	(void) val;
+}

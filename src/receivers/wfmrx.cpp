@@ -255,7 +255,7 @@ void wfmrx::set_fm_deemph(double tau)
     demod_fm->set_tau(tau);
 }
 
-void wfmrx::get_decoder_data(enum wfmrx_decoder decoder_type, std::string &outbuff, int &num)
+void wfmrx::get_decoder_data(int decoder_type, std::string &outbuff, int &num)
 {
 	if (!is_decoder_active(decoder_type))
 		num = -1;
@@ -269,7 +269,7 @@ void wfmrx::get_decoder_data(enum wfmrx_decoder decoder_type, std::string &outbu
 	}
 }
 
-void wfmrx::start_decoder(enum wfmrx_decoder decoder_type)
+void wfmrx::start_decoder(int decoder_type)
 {
 	if (!is_decoder_active(decoder_type))
 		switch (decoder_type) {
@@ -285,7 +285,7 @@ void wfmrx::start_decoder(enum wfmrx_decoder decoder_type)
 		}
 }
 
-void wfmrx::stop_decoder(enum wfmrx_decoder decoder_type)
+void wfmrx::stop_decoder(int decoder_type)
 {
 	if (is_decoder_active(decoder_type))
 		switch (decoder_type) {
@@ -303,7 +303,7 @@ void wfmrx::stop_decoder(enum wfmrx_decoder decoder_type)
 		}
 }
 
-void wfmrx::reset_decoder(enum wfmrx_decoder decoder_type)
+void wfmrx::reset_decoder(int decoder_type)
 {
 	if (is_decoder_active(decoder_type))
 		switch (decoder_type) {
@@ -315,7 +315,7 @@ void wfmrx::reset_decoder(enum wfmrx_decoder decoder_type)
 		}
 }
 
-bool wfmrx::is_decoder_active(enum wfmrx_decoder decoder_type)
+bool wfmrx::is_decoder_active(int decoder_type)
 {
 	switch (decoder_type) {
 		case WFMRX_DECODER_RDS:
