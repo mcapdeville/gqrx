@@ -125,6 +125,7 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     /* create dock widgets */
     uiDockRxOpt = new DockRxOpt();
     uiDockRDS = new DockRDS();
+    uiDockRTTY = new DockRTTY();
     uiDockAudio = new DockAudio();
     uiDockInputCtl = new DockInputCtl();
     uiDockFft = new DockFft();
@@ -158,7 +159,9 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
 
     addDockWidget(Qt::RightDockWidgetArea, uiDockAudio);
     addDockWidget(Qt::RightDockWidgetArea, uiDockRDS);
+    addDockWidget(Qt::RightDockWidgetArea, uiDockRTTY);
     tabifyDockWidget(uiDockAudio, uiDockRDS);
+    tabifyDockWidget(uiDockAudio, uiDockRTTY);
     uiDockAudio->raise();
 
     addDockWidget(Qt::BottomDockWidgetArea, uiDockBookmarks);
@@ -166,6 +169,7 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     /* hide docks that we don't want to show initially */
     uiDockBookmarks->hide();
     uiDockRDS->hide();
+    uiDockRTTY->hide();
 
     /* Add dock widget actions to View menu. By doing it this way all signal/slot
        connections will be established automagially.
@@ -173,6 +177,7 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     ui->menu_View->addAction(uiDockInputCtl->toggleViewAction());
     ui->menu_View->addAction(uiDockRxOpt->toggleViewAction());
     ui->menu_View->addAction(uiDockRDS->toggleViewAction());
+    ui->menu_View->addAction(uiDockRTTY->toggleViewAction());
     ui->menu_View->addAction(uiDockAudio->toggleViewAction());
     ui->menu_View->addAction(uiDockFft->toggleViewAction());
     ui->menu_View->addAction(uiDockBookmarks->toggleViewAction());
@@ -254,6 +259,13 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
     connect(uiDockFft, SIGNAL(fftPeakHoldToggled(bool)), this, SLOT(setFftPeakHold(bool)));
     connect(uiDockFft, SIGNAL(peakDetectionToggled(bool)), this, SLOT(setPeakDetection(bool)));
     connect(uiDockRDS, SIGNAL(rdsDecoderToggled(bool)), this, SLOT(setRdsDecoder(bool)));
+    connect(uiDockRTTY, SIGNAL(rtty_start_decoder()), this, SLOT(start_rtty_decoder()));
+    connect(uiDockRTTY, SIGNAL(rtty_stop_decoder()), this, SLOT(stop_rtty_decoder()));
+    connect(uiDockRTTY, SIGNAL(rtty_baud_rate_Changed(float)), this, SLOT(set_rtty_baud_rate(float)));
+    connect(uiDockRTTY, SIGNAL(rtty_mark_freq_Changed(float)), this, SLOT(set_rtty_mark_freq(float)));
+    connect(uiDockRTTY, SIGNAL(rtty_space_freq_Changed(float)), this, SLOT(set_rtty_space_freq(float)));
+    connect(uiDockRTTY, SIGNAL(rtty_mode_Changed(int)), this, SLOT(set_rtty_mode(int)));
+    connect(uiDockRTTY, SIGNAL(rtty_parity_Changed(int)), this, SLOT(set_rtty_parity(int)));
 
     // Bookmarks
     connect(uiDockBookmarks, SIGNAL(newBookmarkActivated(qint64, QString, int)), this, SLOT(onBookmarkActivated(qint64, QString, int)));
@@ -286,6 +298,9 @@ MainWindow::MainWindow(const QString cfgfile, bool edit_conf, QWidget *parent) :
 
     rds_timer = new QTimer(this);
     connect(rds_timer, SIGNAL(timeout()), this, SLOT(rdsTimeout()));
+
+    rtty_timer = new QTimer(this);
+    connect(rtty_timer, SIGNAL(timeout()), this, SLOT(rttyTimeout()));
 
     // enable frequency tooltips on FFT plot
 #ifdef Q_OS_MAC
@@ -377,6 +392,7 @@ MainWindow::~MainWindow()
     delete uiDockFft;
     delete uiDockInputCtl;
     delete uiDockRDS;
+    delete uiDockRTTY;
     delete rx;
     delete remote;
     delete [] d_fftData;
@@ -1011,6 +1027,7 @@ void MainWindow::selectDemod(int mode_idx)
     int     filter_preset = uiDockRxOpt->currentFilter();
     int     flo=0, fhi=0, click_res=100;
     bool    rds_decoder_enabled;
+    bool    rtty_decoder_enabled;
 
     // validate mode_idx
     if (mode_idx < DockRxOpt::MODE_OFF || mode_idx >= DockRxOpt::MODE_LAST)
@@ -1027,6 +1044,11 @@ void MainWindow::selectDemod(int mode_idx)
     if (rds_decoder_enabled)
         setRdsDecoder(false);
     uiDockRDS->setDisabled();
+
+    rtty_decoder_enabled = rx->is_decoder_active(receiver::RX_DECODER_RTTY);
+    if (rtty_decoder_enabled)
+        stop_rtty_decoder();
+    uiDockRTTY->set_Disabled();
 
     switch (mode_idx) {
 
@@ -1079,9 +1101,6 @@ void MainWindow::selectDemod(int mode_idx)
         else
             rx->set_demod(receiver::RX_DEMOD_WFM_S);
 
-        uiDockRDS->setEnabled();
-        if (rds_decoder_enabled)
-            setRdsDecoder(true);
         break;
 
     case DockRxOpt::MODE_LSB:
@@ -1124,6 +1143,21 @@ void MainWindow::selectDemod(int mode_idx)
         fhi = 5000;
         click_res = 100;
         break;
+    }
+
+    switch (rx->get_rx_chain()) {
+	    case receiver::RX_CHAIN_NBRX:
+		uiDockRTTY->set_Enabled();
+		if (rtty_decoder_enabled)
+		    start_rtty_decoder();
+		break;
+	    case receiver::RX_CHAIN_WFMRX:
+		uiDockRDS->setEnabled();
+		if (rds_decoder_enabled)
+		    setRdsDecoder(true);
+		break;
+	    default:
+		break;
     }
 
     qDebug() << "Filter preset for mode" << mode_idx << "LO:" << flo << "HI:" << fhi;
@@ -1371,6 +1405,19 @@ void MainWindow::rdsTimeout()
     while(num!=-1) {
         uiDockRDS->updateRDS(QString::fromStdString(buffer), num);
         rx->get_decoder_data(receiver::RX_DECODER_RDS,buffer, num);
+    }
+}
+
+/** RDS message display timeout. */
+void MainWindow::rttyTimeout()
+{
+    std::string buffer;
+    int num;
+
+    rx->get_decoder_data(receiver::RX_DECODER_RTTY,buffer, num);
+    while(num!=-1) {
+        uiDockRTTY->update_text(QString::fromStdString(buffer));
+        rx->get_decoder_data(receiver::RX_DECODER_RTTY,buffer, num);
     }
 }
 
@@ -1770,6 +1817,7 @@ void MainWindow::on_actionDSP_triggered(bool checked)
         iq_fft_timer->stop();
         audio_fft_timer->stop();
         rds_timer->stop();
+	rtty_timer->stop();
 
         /* stop receiver */
         rx->stop();
@@ -2088,6 +2136,55 @@ void MainWindow::setRdsDecoder(bool checked)
         rx->stop_decoder(receiver::RX_DECODER_RDS);
         rds_timer->stop();
     }
+}
+
+void MainWindow::start_rtty_decoder() {
+        qDebug() << "Starting RTTY decoder.";
+        uiDockRTTY->show_Enabled();
+        rx->start_decoder(receiver::RX_DECODER_RTTY);
+        rx->reset_decoder(receiver::RX_DECODER_RTTY);
+        rtty_timer->start(250);
+}
+
+void MainWindow::stop_rtty_decoder() {
+        qDebug() << "Stopping RTTY decoder.";
+        uiDockRTTY->show_Disabled();
+        rx->stop_decoder(receiver::RX_DECODER_RTTY);
+        rtty_timer->stop();
+}
+
+void MainWindow::set_rtty_baud_rate(float baud_rate) {
+
+	rx->set_decoder_param(receiver::RX_DECODER_RTTY,"baud_rate",std::to_string(baud_rate));
+	
+}
+
+void MainWindow::set_rtty_mark_freq(float mark_freq) {
+
+	std::string Val;
+
+	rx->set_decoder_param(receiver::RX_DECODER_RTTY,"mark_freq",std::to_string(mark_freq));
+	rx->get_decoder_param(receiver::RX_DECODER_RTTY,"mark_freq",Val);
+	uiDockRTTY->set_mark_freq(std::stof(Val));
+}
+
+void MainWindow::set_rtty_space_freq(float space_freq) {
+
+	std::string Val;
+
+	rx->set_decoder_param(receiver::RX_DECODER_RTTY,"space_freq",std::to_string(space_freq));
+	rx->get_decoder_param(receiver::RX_DECODER_RTTY,"space_freq",Val);
+	uiDockRTTY->set_space_freq(std::stof(Val));
+}
+
+void MainWindow::set_rtty_mode(int mode) {
+
+	rx->set_decoder_param(receiver::RX_DECODER_RTTY,"mode",std::to_string(mode));
+}
+
+void MainWindow::set_rtty_parity(int parity) {
+
+	rx->set_decoder_param(receiver::RX_DECODER_RTTY,"parity",std::to_string(parity));
 }
 
 void MainWindow::onBookmarkActivated(qint64 freq, QString demod, int bandwidth)

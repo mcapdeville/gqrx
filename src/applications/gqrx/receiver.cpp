@@ -926,6 +926,7 @@ receiver::status receiver::set_demod(rx_demod demod)
     return ret;
 }
 
+
 /**
  * @brief Set maximum deviation of the FM demodulator.
  * @param maxdev_hz The new maximum deviation in Hz.
@@ -1364,11 +1365,18 @@ void receiver::connect_all(rx_chain type)
     }
 }
 
+enum receiver::rx_chain receiver::get_rx_chain() {
+	return d_rx_chain;
+}
+
 void receiver::get_decoder_data(enum rx_decoder decoder_type,std::string &outbuff, int &num)
 {
 	switch (d_rx_chain) {
 		case RX_CHAIN_NBRX:
 			switch (decoder_type) {
+				case RX_DECODER_RTTY:
+					rx->get_decoder_data(nbrx::NBRX_DECODER_RTTY,outbuff,num);
+					break;
 				default:
 					num = -1;
 					break;
@@ -1397,6 +1405,9 @@ void receiver::start_decoder(enum rx_decoder decoder_type)
 	switch (d_rx_chain) {
 		case RX_CHAIN_NBRX:
 			switch (decoder_type) {
+				case RX_DECODER_RTTY:
+					rx->start_decoder(nbrx::NBRX_DECODER_RTTY);
+					break;
 				default:
 					break;
 			}
@@ -1424,6 +1435,9 @@ void receiver::stop_decoder(enum rx_decoder decoder_type)
 	switch (d_rx_chain) {
 		case RX_CHAIN_NBRX:
 			switch (decoder_type) {
+				case RX_DECODER_RTTY:
+					rx->stop_decoder(nbrx::NBRX_DECODER_RTTY);
+					break;
 				default:
 					break;
 			}
@@ -1452,7 +1466,11 @@ bool receiver::is_decoder_active(enum rx_decoder decoder_type) const
 		case RX_CHAIN_NBRX:
 			switch (decoder_type) {
 				case RX_DECODER_ANY:
-					return active;
+					active |= rx->is_decoder_active(nbrx::NBRX_DECODER_RTTY);
+					break;
+				case RX_DECODER_RTTY:
+					active = rx->is_decoder_active(nbrx::NBRX_DECODER_RTTY);
+					break;
 				default:
 					break;
 			}
@@ -1461,9 +1479,10 @@ bool receiver::is_decoder_active(enum rx_decoder decoder_type) const
 			switch (decoder_type) {
 				case RX_DECODER_ANY:
 					active |= rx->is_decoder_active(wfmrx::WFMRX_DECODER_RDS);
-					return active;
+					break;
 				case RX_DECODER_RDS:
-					return rx->is_decoder_active(wfmrx::WFMRX_DECODER_RDS);
+					active = rx->is_decoder_active(wfmrx::WFMRX_DECODER_RDS);
+					break;
 				default:
 					break;
 			}
@@ -1472,7 +1491,7 @@ bool receiver::is_decoder_active(enum rx_decoder decoder_type) const
 			break;
 	}	
 
-    return false;
+    return active;
 }
 
 void receiver::reset_decoder(enum rx_decoder decoder_type)
@@ -1481,6 +1500,10 @@ void receiver::reset_decoder(enum rx_decoder decoder_type)
 		case RX_CHAIN_NBRX:
 			switch (decoder_type) {
 				case RX_DECODER_ALL:
+					rx->reset_decoder(nbrx::NBRX_DECODER_RTTY);
+					break;
+				case RX_DECODER_RTTY:
+					rx->reset_decoder(nbrx::NBRX_DECODER_RTTY);
 					break;
 				default:
 					break;
@@ -1493,6 +1516,56 @@ void receiver::reset_decoder(enum rx_decoder decoder_type)
 					break;
 				case RX_DECODER_RDS:
 					rx->reset_decoder(wfmrx::WFMRX_DECODER_RDS);
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}	
+}
+
+void	receiver::set_decoder_param(enum rx_decoder decoder_type, std::string param, std::string val) {
+	switch (d_rx_chain) {
+		case RX_CHAIN_NBRX:
+			switch (decoder_type) {
+				case RX_DECODER_RTTY:
+					rx->set_decoder_param(nbrx::NBRX_DECODER_RTTY,param,val);
+					break;
+				default:
+					break;
+			}
+			break;
+		case RX_CHAIN_WFMRX:
+			switch (decoder_type) {
+				case RX_DECODER_RDS:
+					rx->set_decoder_param(wfmrx::WFMRX_DECODER_RDS,param,val);
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}	
+}
+
+void	receiver::get_decoder_param(enum rx_decoder decoder_type, std::string param, std::string &val) {
+	switch (d_rx_chain) {
+		case RX_CHAIN_NBRX:
+			switch (decoder_type) {
+				case RX_DECODER_RTTY:
+					rx->get_decoder_param(nbrx::NBRX_DECODER_RTTY,param,val);
+					break;
+				default:
+					break;
+			}
+			break;
+		case RX_CHAIN_WFMRX:
+			switch (decoder_type) {
+				case RX_DECODER_RDS:
+					rx->get_decoder_param(wfmrx::WFMRX_DECODER_RDS,param,val);
 					break;
 				default:
 					break;

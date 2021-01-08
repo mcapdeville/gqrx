@@ -115,6 +115,7 @@ public:
 	    RX_DECODER_NONE = 0,
 	    RX_DECODER_ANY = 0,
 	    RX_DECODER_RDS = 1,
+	    RX_DECODER_RTTY = 2,
     };
 
     receiver(const std::string input_device="",
@@ -194,6 +195,7 @@ public:
     status      set_agc_manual_gain(int gain);
 
     status      set_demod(rx_demod demod);
+    enum rx_chain get_rx_chain();
 
     /* FM parameters */
     status      set_fm_maxdev(float maxdev_hz);
@@ -226,11 +228,13 @@ public:
     bool        is_snifffer_active(void) const { return d_sniffer_active; }
 
     /* decoder functions */
-    void        get_decoder_data(enum rx_decoder decoder_type, std::string &outbuff, int &num);
-    void        start_decoder(enum rx_decoder decoder_type);
-    void        stop_decoder(enum rx_decoder decoder_type);
-    bool        is_decoder_active(enum rx_decoder decoder_type) const;
-    void        reset_decoder(enum rx_decoder decoder_type);
+    virtual void        get_decoder_data(enum rx_decoder decoder_type, std::string &outbuff, int &num);
+    virtual void        start_decoder(enum rx_decoder decoder_type);
+    virtual void        stop_decoder(enum rx_decoder decoder_type);
+    virtual bool        is_decoder_active(enum rx_decoder decoder_type) const;
+    virtual void        reset_decoder(enum rx_decoder decoder_type);
+    virtual void	set_decoder_param(enum rx_decoder decoder_type, std::string param, std::string val);
+    virtual void	get_decoder_param(enum rx_decoder decoder_type, std::string param, std::string &val);
 
 private:
     void        connect_all(rx_chain type);

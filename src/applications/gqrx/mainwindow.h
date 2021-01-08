@@ -39,6 +39,7 @@
 #include "qtgui/dockfft.h"
 #include "qtgui/dockbookmarks.h"
 #include "qtgui/dockrds.h"
+#include "qtgui/dockrtty.h"
 #include "qtgui/afsk1200win.h"
 #include "qtgui/iq_tool.h"
 
@@ -97,6 +98,7 @@ private:
     DockFft        *uiDockFft;
     DockBookmarks  *uiDockBookmarks;
     DockRDS        *uiDockRDS;
+    DockRTTY       *uiDockRTTY;
 
     CIqTool        *iq_tool;
 
@@ -104,12 +106,14 @@ private:
     /* data decoders */
     Afsk1200Win    *dec_afsk1200;
     bool            dec_rds;
+    bool	    dec_rtty;
 
     QTimer   *dec_timer;
     QTimer   *meter_timer;
     QTimer   *iq_fft_timer;
     QTimer   *audio_fft_timer;
     QTimer   *rds_timer;
+    QTimer   *rtty_timer;
 
     receiver *rx;
 
@@ -198,6 +202,15 @@ private slots:
     /* RDS */
     void setRdsDecoder(bool checked);
 
+    /* RTTY */
+    void start_rtty_decoder();
+    void stop_rtty_decoder();
+    void set_rtty_baud_rate(float);
+    void set_rtty_mark_freq(float);
+    void set_rtty_space_freq(float);
+    void set_rtty_mode(int);
+    void set_rtty_parity(int);
+
     /* Bookmarks */
     void onBookmarkActivated(qint64 freq, QString demod, int bandwidth);
 
@@ -230,6 +243,7 @@ private slots:
     void iqFftTimeout();
     void audioFftTimeout();
     void rdsTimeout();
+    void rttyTimeout();
 };
 
 #endif // MAINWINDOW_H
