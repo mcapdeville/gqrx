@@ -44,6 +44,8 @@ add_source_files(SRCS_LIST
 	plotter.h
 	qtcolorpicker.cpp
 	qtcolorpicker.h
+	dockrtty.cpp
+	dockrtty.h
 )
 
 #######################################################################################################################
@@ -62,5 +64,6 @@ add_source_files(UI_SRCS_LIST
 	ioconfig.ui
 	iq_tool.ui
 	nb_options.ui
+	dockrtty.ui
 )
 
