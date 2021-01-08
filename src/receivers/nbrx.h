@@ -36,6 +36,7 @@
 #include "dsp/rx_demod_am.h"
 //#include "dsp/resampler_ff.h"
 #include "dsp/resampler_xx.h"
+#include "dsp/rtty/rtty_demod.h"
 
 class nbrx;
 
@@ -64,7 +65,7 @@ public:
     /** \brief Available Digital decoder */
     enum nbrx_decoder {
 	NBRX_DECODER_NONE = 0,	/*!< NO decoder. */
-	NBRX_DECODER_RTTY = 1,	/*!< RDS decoder. */
+	NBRX_DECODER_RTTY = 1,	/*!< RTTY decoder. */
     };
 
 public:
@@ -113,11 +114,13 @@ public:
     void set_am_dcr(bool enabled);
 
     /* Digital decoder methode */
-    void get_decoder_data(enum nbrx_decoder decoder_type,std::string &outbuff, int &num);
-    void start_decoder(enum nbrx_decoder decoder_type);
-    void stop_decoder(enum nbrx_decoder decoder_type);
-    void reset_decoder(enum nbrx_decoder decoder_type);
-    bool is_decoder_active(enum nbrx_decoder decoder_type);
+    void get_decoder_data(int decoder_type,std::string &outbuff, int &num);
+    void start_decoder(int decoder_type);
+    void stop_decoder(int decoder_type);
+    void reset_decoder(int decoder_type);
+    bool is_decoder_active(int decoder_type);
+    void set_decoder_param(int decoder_type, std::string param, std::string val);
+    void get_decoder_param(int decoder_type, std::string param, std::string &val);
 
 private:
     bool   d_running;          /*!< Whether receiver is running or not. */
@@ -141,6 +144,9 @@ private:
     resampler_ff_sptr         audio_rr1;  /*!< Audio resampler. */
 
     gr::basic_block_sptr      demod;    // dummy pointer used for simplifying reconf
+
+    rtty_demod::sptr		d_rtty;	// RTTY decoder
+    bool d_rtty_enable;
 };
 
 #endif // NBRX_H
